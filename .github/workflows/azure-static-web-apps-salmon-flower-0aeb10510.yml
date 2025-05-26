@@ -15,15 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (local)
         uses: ./.github/actions/checkout
-        
-      - name: Checkout repository
-        uses: actions/checkout@v3  # This one is allowed — use just once here.
 
       - name: Build and Deploy to Azure Static Web Apps
         id: builddeploy
-        uses: ./.github/actions/static-web-apps-deploy  # Local path
+        uses: ./.github/actions/static-web-apps-deploy
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_SALMON_FLOWER_0AEB10510 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
