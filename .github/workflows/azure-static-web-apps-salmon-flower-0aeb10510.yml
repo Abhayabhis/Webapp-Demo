@@ -17,6 +17,10 @@ jobs:
     steps:
       - name: Checkout repository (local)
         uses: ./.github/actions/checkout
+       
+      - name: Checkout repository
+        uses: ./.github/actions/checkout
+
 
       - name: Build and Deploy to Azure Static Web Apps
         id: builddeploy
