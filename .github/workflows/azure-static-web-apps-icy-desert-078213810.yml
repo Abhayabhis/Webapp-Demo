@@ -1,11 +1,13 @@
-name: Azure Static Web Apps Manual Deploy
+name: Azure Static Web Apps CI/CD
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
     types: [opened, synchronize, reopened, closed]
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build_and_deploy:
@@ -15,33 +17,42 @@ jobs:
       - name: Local Checkout
         uses: ./.github/actions/checkout
 
-      - name: Setup Node
-        uses: actions/setup-node@v3  # Only works if not restricted, else remove
+      - name: Install Node.js manually
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          node -v
+          npm -v
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Build
+      - name: Build project
         run: npm run build
 
-      - name: Azure CLI Login
+      - name: Install Azure CLI
         run: |
-          echo "${{ secrets.AZURE_CREDENTIALS }}" > azure.json
-          az login --service-principal --username ${{ secrets.AZURE_CLIENT_ID }} \
-                   --password ${{ secrets.AZURE_CLIENT_SECRET }} \
-                   --tenant ${{ secrets.AZURE_TENANT_ID }}
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          az version
 
-      - name: Deploy to Azure Static Web App
+      - name: Login to Azure
+        run: |
+          az login --service-principal \
+            --username "${{ secrets.AZURE_CLIENT_ID }}" \
+            --password "${{ secrets.AZURE_CLIENT_SECRET }}" \
+            --tenant "${{ secrets.AZURE_TENANT_ID }}"
+
+      - name: Deploy to Azure Static Web Apps
         run: |
           az staticwebapp upload \
             --name <YOUR_WEB_APP_NAME> \
-            --resource-group <YOUR_RESOURCE_GROUP> \
+            --resource-group <YOUR_RESOURCE_GROUP_NAME> \
             --source ./build \
-            --token ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+            --verbose
 
   close_env:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
-      - name: Close Preview Environment
-        run: echo "PR closed — no preview teardown logic defined."
+      - name: Teardown logic
+        run: echo "Closed PR. No teardown logic implemented."
